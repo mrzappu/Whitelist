@@ -201,7 +201,7 @@ client.once('ready', async () => {
   try {
     const rest = new REST({ version: '10' }).setToken(TOKEN);
     await rest.put(
-      Routes.applicationGuildCommands(client.user.id, "1388837331565543514"), // Replace with your server ID
+      Routes.applicationGuildCommands(client.user.id, "YOUR_GUILD_ID"), // Replace with your server ID
       {
         body: [
           kickCommand.toJSON(),
@@ -672,52 +672,60 @@ client.on(Events.InteractionCreate, async interaction => {
     }
 
     if (interaction.customId.startsWith('accept_application_') || interaction.customId.startsWith('reject_application_')) {
-      const [buttonType, messageId, applicantId] = interaction.customId.split('_');
-      const reason = interaction.fields.getTextInputValue('reasonInput');
+      // Defer the reply to prevent the "Interaction Failed" error.
+      await interaction.deferReply({ ephemeral: true });
+      
+      try {
+        const [buttonType, messageId, applicantId] = interaction.customId.split('_');
+        const reason = interaction.fields.getTextInputValue('reasonInput');
 
-      const originalMessage = await interaction.channel.messages.fetch(messageId);
-      const originalEmbed = originalMessage.embeds[0];
-      const newEmbed = new EmbedBuilder(originalEmbed.toJSON());
+        const originalMessage = await interaction.channel.messages.fetch(messageId);
+        const originalEmbed = originalMessage.embeds[0];
+        const newEmbed = new EmbedBuilder(originalEmbed.toJSON());
 
-      if (buttonType === 'accept_application') {
-        newEmbed.setTitle('✅ WHITELIST APPLICATION ACCEPTED').setColor(0x57F287);
-        newEmbed.addFields({ name: 'Reason for Acceptance', value: reason });
-        await interaction.reply({ content: 'Application has been marked as Accepted.', ephemeral: true });
+        if (buttonType === 'accept_application') {
+          newEmbed.setTitle('✅ WHITELIST APPLICATION ACCEPTED').setColor(0x57F287);
+          newEmbed.addFields({ name: 'Reason for Acceptance', value: reason });
+          await interaction.editReply({ content: 'Application has been marked as Accepted.' });
 
-        if (applicationLogChannelId) {
-          const logChannel = interaction.guild.channels.cache.get(applicationLogChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setColor(0x57F287)
-              .setTitle("✅ Application Accepted")
-              .setDescription(`Application from **<@${applicantId}>** was accepted by **${interaction.user.tag}**`)
-              .addFields({ name: 'Reason', value: reason })
-              .setFooter({ text: `User ID: ${applicantId}` })
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
+          if (applicationLogChannelId) {
+            const logChannel = interaction.guild.channels.cache.get(applicationLogChannelId);
+            if (logChannel) {
+              const logEmbed = new EmbedBuilder()
+                .setColor(0x57F287)
+                .setTitle("✅ Application Accepted")
+                .setDescription(`Application from **<@${applicantId}>** was accepted by **${interaction.user.tag}**`)
+                .addFields({ name: 'Reason', value: reason })
+                .setFooter({ text: `User ID: ${applicantId}` })
+                .setTimestamp();
+              await logChannel.send({ embeds: [logEmbed] });
+            }
+          }
+        } else if (buttonType === 'reject_application') {
+          newEmbed.setTitle('❌ WHITELIST APPLICATION REJECTED').setColor(0xED4245);
+          newEmbed.addFields({ name: 'Reason for Rejection', value: reason });
+          await interaction.editReply({ content: 'Application has been marked as Rejected.' });
+
+          if (applicationLogChannelId) {
+            const logChannel = interaction.guild.channels.cache.get(applicationLogChannelId);
+            if (logChannel) {
+              const logEmbed = new EmbedBuilder()
+                .setColor(0xED4245)
+                .setTitle("❌ Application Rejected")
+                .setDescription(`Application from **<@${applicantId}>** was rejected by **${interaction.user.tag}**`)
+                .addFields({ name: 'Reason', value: reason })
+                .setFooter({ text: `User ID: ${applicantId}` })
+                .setTimestamp();
+              await logChannel.send({ embeds: [logEmbed] });
+            }
           }
         }
-      } else if (buttonType === 'reject_application') {
-        newEmbed.setTitle('❌ WHITELIST APPLICATION REJECTED').setColor(0xED4245);
-        newEmbed.addFields({ name: 'Reason for Rejection', value: reason });
-        await interaction.reply({ content: 'Application has been marked as Rejected.', ephemeral: true });
 
-        if (applicationLogChannelId) {
-          const logChannel = interaction.guild.channels.cache.get(applicationLogChannelId);
-          if (logChannel) {
-            const logEmbed = new EmbedBuilder()
-              .setColor(0xED4245)
-              .setTitle("❌ Application Rejected")
-              .setDescription(`Application from **<@${applicantId}>** was rejected by **${interaction.user.tag}**`)
-              .addFields({ name: 'Reason', value: reason })
-              .setFooter({ text: `User ID: ${applicantId}` })
-              .setTimestamp();
-            await logChannel.send({ embeds: [logEmbed] });
-          }
-        }
+        await originalMessage.edit({ embeds: [newEmbed], components: [] });
+      } catch (error) {
+        console.error('An error occurred during application processing:', error);
+        await interaction.editReply({ content: '❌ An error occurred while processing the application.' });
       }
-
-      await originalMessage.edit({ embeds: [newEmbed], components: [] });
     }
   }
 });
