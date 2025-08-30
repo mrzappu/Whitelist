@@ -201,7 +201,7 @@ client.once('ready', async () => {
   try {
     const rest = new REST({ version: '10' }).setToken(TOKEN);
     await rest.put(
-      Routes.applicationGuildCommands(client.user.id, "YOUR_GUILD_ID"), // Replace with your server ID
+      Routes.applicationGuildCommands(client.user.id, "1388837331565543514"), // Replace with your server ID
       {
         body: [
           kickCommand.toJSON(),
