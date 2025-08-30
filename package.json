@@ -1,0 +1,37 @@
+{
+  "name": "discord-moderation-bot",
+  "version": "1.1.0",
+  "description": "A Discord moderation bot with kick, ban, mute, unmute, warn commands. It also includes a fully functional sticky message system for both text and embeds, an application form, voice logs, welcome/goodbye messages, and role management.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "moderation",
+    "voice logs",
+    "kick",
+    "ban",
+    "mute",
+    "unmute",
+    "warn",
+    "roles",
+    "move",
+    "lock",
+    "unlock",
+    "say",
+    "help",
+    "welcome messages",
+    "goodbye messages",
+    "sticky messages",
+    "application form"
+  ],
+  "author": "Rick",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  }
+}
